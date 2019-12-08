@@ -1,0 +1,95 @@
+---
+title: "Programming Assignment 9-4"
+author: "Peter Gajda"
+date: "8 December 2019"
+output: ioslides_presentation
+widescreen: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Programming Assignment 9-4 - Shiny App
+
+This is a presentation for the Coursera Data Class "Developing Data products".
+The objective of the class was to write a shiny app.
+The app which was created is based on the iris dataset. The goal ist to give the
+user the opportunity to create a plot with to different variables from the iris
+dataset. The plot automatically creates to lines. One line is fixed and represents
+a linear model. The other lines lowess ist configurable via the app.
+The following slides show the R code for the ui and server side and on the last slide
+an example of one possible configuration of the plot is shown.
+
+- The application can be found in the following link
+- https://petergajda.shinyapps.io/ProgrammingAssignment_9-4/
+
+- The source code is hosted in the following link
+- https://github.com/petergajda/ProgrammingAssignment_9-4
+
+
+## ui.R - Configuration
+
+```{r, echo = TRUE, warning = FALSE, message=FALSE, eval=FALSE}
+library(datasets)
+fluidPage(    
+  titlePanel("Iris Data Set"),
+  sidebarLayout(      
+    sidebarPanel(
+      selectInput("option1", "Option Y-Axis:", choices=colnames(iris[1:4])),
+      selectInput("option2", "Option X-Axis:", choices=colnames(iris[1:4])),
+      hr(), 
+      helpText("Data from iris data set (1936)."),
+      hr(),
+      sliderInput("lowess", "Line lowess:", min = 0.01, max = 1, value = 0.5),
+      hr(),
+      helpText("Please use this app to create...")
+      ),
+    mainPanel(
+      plotOutput("irisPlot")  
+    )
+  )
+)
+```
+
+
+
+## server.R - Configuration
+
+```{r, echo = TRUE, warning = FALSE, message=FALSE, eval=FALSE}
+library(datasets)
+function(input, output) {
+ output$irisPlot <- renderPlot({
+    plot(iris[,input$option1] ~ iris[,input$option2],
+            main=paste("This graph shows", input$option1, "by", input$option2),
+            pch = 3,
+            ylab=input$option1,
+            xlab=input$option2,
+            col=c("red", "green", "blue"))
+         abline(lm(iris[,input$option1] ~ iris[,input$option2]), col="black", 
+                lwd=3, lty=4)
+         lines(lowess(iris[,input$option1] ~ iris[,input$option2],
+                      f = input$lowess), col = 'black', lwd=3, lty=4)
+         legend('topright', legend = unique(iris$Species), 
+                col = c("red", "green", "blue"), pch = 3)
+```
+
+Via iris[,input$option1] or iris[,input$option2] the app gets the information which column from the iris dataset has to be used.
+Via input$lowess in the f argument in the lines function the app gets the information about the lowess level.
+
+
+## Plot: Sepal.Length vs. Sepal.Width {.flexbox .vcenter}
+
+```{r, echo = FALSE, warning = FALSE, message=FALSE}
+
+    plot(iris$Sepal.Length ~ iris$Sepal.Width,
+            main=paste("This graph shows Sepal.Length by Sepal.Width"),
+            pch = 3,
+            col=c("red", "green", "blue"))
+         abline(lm(iris$Sepal.Length ~ iris$Sepal.Width), col="black", lwd=3, lty=4)
+         lines(lowess(iris$Sepal.Length ~ iris$Sepal.Width, f = 0.5), col = 'black', lwd=3, lty=4)
+         legend('topright', legend = unique(iris$Species), col = c("red", "green", "blue"), pch = 3)
+```
+
+
+
